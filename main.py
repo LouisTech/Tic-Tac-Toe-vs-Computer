@@ -115,13 +115,28 @@ class Board():
                              (dis_width, sixth_height+buffer_height +
                               (i*self.hoz_third_height)),
                              4)
-                break
+                return True
             # check vertical for win
             if ((self.board[0][i] is not None) and self.board[0][i] == self.board[1][i] == self.board[2][i]):
                 winner = self.board[0][i]
                 pg.draw.line(screen, (250, 0, 0), (sixth_width + (i*self.vert_third),
                                                    buffer_height), (sixth_width + (i*self.vert_third), dis_height), 4)
-                break
+                return True
+
+            # check diagonal wins
+            if (self.board[0][0] == self.board[1][1] == self.board[2][2]) and (self.board[0][0] is not None):
+                # game won diagonally left to right
+                winner = self.board[0][0]
+                pg.draw.line(screen, (250, 70, 70),
+                             (0, buffer_height), (dis_width, dis_height), 4)
+                return True
+
+            if (self.board[0][2] == self.board[1][1] == self.board[2][0]) and (self.board[0][2] is not None):
+                # game won diagonally right to left
+                winner = self.board[0][2]
+                pg.draw.line(screen, (250, 70, 70), (0, dis_height),
+                             (dis_width, buffer_height), 4)
+                return True
 
     def user_click(self):
         x, y = pg.mouse.get_pos()

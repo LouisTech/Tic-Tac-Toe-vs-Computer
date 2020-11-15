@@ -78,7 +78,6 @@ class Button():
 class Board():
     def __init__(self):
         self.board = [[None]*3, [None]*3, [None]*3]
-        self.win = False
         self.xo = "x"
         # height of a square
         self.hoz_third_height = ((dis_height-buffer_height)/3)
@@ -87,6 +86,7 @@ class Board():
         self.hoz_third2 = self.hoz_third_height*2+buffer_height
         # x co-ord of first vertical line
         self.vert_third = dis_width / 3
+        self.win = False
 
     def draw_board(self):
         # draw vertical lines

@@ -78,6 +78,7 @@ class Button():
 class Board():
     def __init__(self):
         self.board = [[None]*3, [None]*3, [None]*3]
+        self.win = False
         self.xo = "x"
         # height of a square
         self.hoz_third_height = ((dis_height-buffer_height)/3)
@@ -115,13 +116,13 @@ class Board():
                              (dis_width, sixth_height+buffer_height +
                               (i*self.hoz_third_height)),
                              4)
-                return True
+                self.win = True
             # check vertical for win
             if ((self.board[0][i] is not None) and self.board[0][i] == self.board[1][i] == self.board[2][i]):
                 winner = self.board[0][i]
                 pg.draw.line(screen, (250, 0, 0), (sixth_width + (i*self.vert_third),
                                                    buffer_height), (sixth_width + (i*self.vert_third), dis_height), 4)
-                return True
+                self.win = True
 
             # check diagonal wins
             if (self.board[0][0] == self.board[1][1] == self.board[2][2]) and (self.board[0][0] is not None):
@@ -129,39 +130,40 @@ class Board():
                 winner = self.board[0][0]
                 pg.draw.line(screen, (250, 70, 70),
                              (0, buffer_height), (dis_width, dis_height), 4)
-                return True
+                self.win = True
 
             if (self.board[0][2] == self.board[1][1] == self.board[2][0]) and (self.board[0][2] is not None):
                 # game won diagonally right to left
                 winner = self.board[0][2]
                 pg.draw.line(screen, (250, 70, 70), (0, dis_height),
                              (dis_width, buffer_height), 4)
-                return True
+                self.win = True
 
     def user_click(self):
         x, y = pg.mouse.get_pos()
-        # get column of mouse click (1-3)
-        if(x < self.vert_third):
-            col = 1
-        elif (x < self.vert_third * 2):
-            col = 2
-        elif(x < dis_width):
-            col = 3
-        else:
-            col = None
+        if self.win == False:
+            # get column of mouse click (1-3)
+            if(x < self.vert_third):
+                col = 1
+            elif (x < self.vert_third * 2):
+                col = 2
+            elif(x < dis_width):
+                col = 3
+            else:
+                col = None
 
-        # get row of mouse click (1-3)
-        if(y < self.hoz_third):
-            row = 1
-        elif (y < self.hoz_third2):
-            row = 2
-        elif(y < dis_height):
-            row = 3
-        else:
-            row = None
+            # get row of mouse click (1-3)
+            if(y < self.hoz_third):
+                row = 1
+            elif (y < self.hoz_third2):
+                row = 2
+            elif(y < dis_height):
+                row = 3
+            else:
+                row = None
 
-        if(row and col and self.board[row-1][col-1] is None):
-            self.draw_XO(row, col)
+            if(row and col and self.board[row-1][col-1] is None):
+                self.draw_XO(row, col)
 
     def draw_XO(self, row, col):
         if row == 1:
@@ -189,6 +191,7 @@ class Board():
         self.check_win()
 
     def reset(self, mode):
+        self.win = False
         if mode == "pvp":
             pvp()
         else:

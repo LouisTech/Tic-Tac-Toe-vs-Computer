@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame.locals import *
+from ai import ai_move
 import sys
 
 # initialise pygame
@@ -12,9 +13,9 @@ Winner = None
 draw = None
 
 # paremeters for the game setup
-buffer_height = 100
-dis_height = 500 + buffer_height
-dis_width = int((dis_height - buffer_height) * (4/3))
+header_height = 100
+dis_height = 500 + header_height
+dis_width = int((dis_height - header_height) * (4/3))
 dis_center = int(dis_width/2)
 
 white = (255, 255, 255)
@@ -80,77 +81,105 @@ class Board():
         self.board = [[None]*3, [None]*3, [None]*3]
         self.xo = "x"
         # height of a square
-        self.hoz_third_height = ((dis_height-buffer_height)/3)
+        self.y_third = ((dis_height-header_height)/3)
         # y co-ord of first horizontal line
-        self.hoz_third = self.hoz_third_height+buffer_height
-        self.hoz_third2 = self.hoz_third_height*2+buffer_height
+        self.hoz_third = self.y_third+header_height
+        self.hoz_third2 = self.y_third*2+header_height
         # x co-ord of first vertical line
-        self.vert_third = dis_width / 3
+        self.x_third = dis_width / 3
+        self.win = False
 
     def draw_board(self):
         # draw vertical lines
-        pg.draw.line(screen, line_color, (self.vert_third, buffer_height),
-                     (self.vert_third, dis_height), 7)
-        pg.draw.line(screen, line_color, (self.vert_third * 2, buffer_height),
-                     (self.vert_third * 2, dis_height), 7)
+        pg.draw.line(screen, line_color, (self.x_third, header_height),
+                     (self.x_third, dis_height), 7)
+        pg.draw.line(screen, line_color, (self.x_third * 2, header_height),
+                     (self.x_third * 2, dis_height), 7)
 
         # draw horizontal lines
-        pg.draw.line(screen, line_color, (0, buffer_height),
-                     (dis_width, buffer_height), 3)
+        pg.draw.line(screen, line_color, (0, header_height),
+                     (dis_width, header_height), 3)
         pg.draw.line(screen, line_color, (0, self.hoz_third),
                      (dis_width, self.hoz_third), 7)
         pg.draw.line(screen, line_color, (0, self.hoz_third2),
                      (dis_width, self.hoz_third2), 7)
 
     def check_win(self):
-        sixth_height = self.hoz_third_height / 2
-        sixth_width = self.vert_third / 2
+        sixth_height = self.y_third / 2
+        sixth_width = self.x_third / 2
         for i in range(0, 3):
             # check horizontal for win
             if ((self.board[i][0] is not None) and self.board[i][0] == self.board[i][1] == self.board[i][2]):
                 winner = self.board[i][0]
                 pg.draw.line(screen, (250, 0, 0),
-                             (0, sixth_height+buffer_height +
-                              (i*self.hoz_third_height)),
-                             (dis_width, sixth_height+buffer_height +
-                              (i*self.hoz_third_height)),
+                             (0, sixth_height+header_height +
+                              (i*self.y_third)),
+                             (dis_width, sixth_height+header_height +
+                              (i*self.y_third)),
                              4)
-                break
+                self.win = True
             # check vertical for win
             if ((self.board[0][i] is not None) and self.board[0][i] == self.board[1][i] == self.board[2][i]):
                 winner = self.board[0][i]
-                pg.draw.line(screen, (250, 0, 0), (sixth_width + (i*self.vert_third),
-                                                   buffer_height), (sixth_width + (i*self.vert_third), dis_height), 4)
-                break
+                pg.draw.line(screen, (250, 0, 0), (sixth_width + (i*self.x_third),
+                                                   header_height), (sixth_width + (i*self.x_third), dis_height), 4)
+                self.win = True
+
+        # check diagonal wins
+        if (self.board[0][0] == self.board[1][1] == self.board[2][2]) and (self.board[0][0] is not None):
+            # game won diagonally left to right
+            winner = self.board[0][0]
+            pg.draw.line(screen, (250, 70, 70),
+                         (0, header_height), (dis_width, dis_height), 4)
+            self.win = True
+
+        if (self.board[0][2] == self.board[1][1] == self.board[2][0]) and (self.board[0][2] is not None):
+            # game won diagonally right to left
+            winner = self.board[0][2]
+            pg.draw.line(screen, (250, 70, 70), (0, dis_height),
+                         (dis_width, header_height), 4)
+            self.win = True
+
+        # ends game if draw
+        if not any(None in sublist for sublist in self.board) and self.win == False:
+            self.win = True
 
     def user_click(self):
         x, y = pg.mouse.get_pos()
-        # get column of mouse click (1-3)
-        if(x < self.vert_third):
-            col = 1
-        elif (x < self.vert_third * 2):
-            col = 2
-        elif(x < dis_width):
-            col = 3
-        else:
-            col = None
+        if self.win == False:
+            if y > header_height:
+                # get column of mouse click (1-3)
+                if(x < self.x_third):
+                    col = 1
+                elif (x < self.x_third * 2):
+                    col = 2
+                elif(x < dis_width):
+                    col = 3
+                else:
+                    col = None
 
-        # get row of mouse click (1-3)
-        if(y < self.hoz_third):
-            row = 1
-        elif (y < self.hoz_third2):
-            row = 2
-        elif(y < dis_height):
-            row = 3
-        else:
-            row = None
+                # get row of mouse click (1-3)
+                if(y < self.hoz_third):
+                    row = 1
+                elif (y < self.hoz_third2):
+                    row = 2
+                elif(y < dis_height):
+                    row = 3
+                else:
+                    row = None
 
-        if(row and col and self.board[row-1][col-1] is None):
-            self.draw_XO(row, col)
+                if(row and col and self.board[row-1][col-1] is None):
+                    self.draw_XO(row, col)
+
+    def ai_click(self):
+        if self.win == False:
+            x, y = ai_move(self.board, "easy")
+            print(x, y)
+            self.draw_XO(x+1, y+1)
 
     def draw_XO(self, row, col):
         if row == 1:
-            posy = buffer_height + 40
+            posy = header_height + 40
         if row == 2:
             posy = self.hoz_third + 40
         if row == 3:
@@ -158,9 +187,9 @@ class Board():
         if col == 1:
             posx = 40
         if col == 2:
-            posx = self.vert_third + 40
+            posx = self.x_third + 40
         if col == 3:
-            posx = (2*self.vert_third) + 40
+            posx = (2*self.x_third) + 40
 
         self.board[row-1][col-1] = self.xo
 
@@ -174,6 +203,7 @@ class Board():
         self.check_win()
 
     def reset(self, mode):
+        self.win = False
         if mode == "pvp":
             pvp()
         else:
@@ -273,11 +303,12 @@ def pvp():
 def pve():
     running = True
     screen.fill(white)
-    home_btn.draw(screen)
-    reset_btn.draw(screen)
     board = Board()
     board.draw_board()
     while running:
+        home_btn.draw(screen)
+        reset_btn.draw(screen)
+        pg.display.update()
         for event in pg.event.get():
             pos = pg.mouse.get_pos()
             if event.type == QUIT:
@@ -289,12 +320,22 @@ def pve():
             if event.type == pg.MOUSEBUTTONDOWN:
                 if home_btn.isOver(pos):
                     main_menu()
+                elif reset_btn.isOver(pos):
+                    board.reset("pve")
+                else:
+                    if board.xo == "x":
+                        board.user_click()
             if event.type == pg.MOUSEMOTION:
                 if home_btn.isOver(pos):
                     home_btn.color = (52, 198, 235)
                 else:
                     home_btn.color = (52, 183, 235)
-        pg.display.update()
+                if reset_btn.isOver(pos):
+                    reset_btn.color = (52, 198, 235)
+                else:
+                    reset_btn.color = (52, 183, 235)
+        if board.xo == "o":
+            board.ai_click()
         mainClock.tick(60)
 
 

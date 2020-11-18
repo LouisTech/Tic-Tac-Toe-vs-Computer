@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame.locals import *
+from ai import ai_move
 import sys
 
 # initialise pygame
@@ -124,20 +125,24 @@ class Board():
                                                    header_height), (sixth_width + (i*self.x_third), dis_height), 4)
                 self.win = True
 
-            # check diagonal wins
-            if (self.board[0][0] == self.board[1][1] == self.board[2][2]) and (self.board[0][0] is not None):
-                # game won diagonally left to right
-                winner = self.board[0][0]
-                pg.draw.line(screen, (250, 70, 70),
-                             (0, header_height), (dis_width, dis_height), 4)
-                self.win = True
+        # check diagonal wins
+        if (self.board[0][0] == self.board[1][1] == self.board[2][2]) and (self.board[0][0] is not None):
+            # game won diagonally left to right
+            winner = self.board[0][0]
+            pg.draw.line(screen, (250, 70, 70),
+                         (0, header_height), (dis_width, dis_height), 4)
+            self.win = True
 
-            if (self.board[0][2] == self.board[1][1] == self.board[2][0]) and (self.board[0][2] is not None):
-                # game won diagonally right to left
-                winner = self.board[0][2]
-                pg.draw.line(screen, (250, 70, 70), (0, dis_height),
-                             (dis_width, header_height), 4)
-                self.win = True
+        if (self.board[0][2] == self.board[1][1] == self.board[2][0]) and (self.board[0][2] is not None):
+            # game won diagonally right to left
+            winner = self.board[0][2]
+            pg.draw.line(screen, (250, 70, 70), (0, dis_height),
+                         (dis_width, header_height), 4)
+            self.win = True
+
+        # ends game if draw
+        if not any(None in sublist for sublist in self.board) and self.win == False:
+            self.win = True
 
     def user_click(self):
         x, y = pg.mouse.get_pos()
@@ -165,6 +170,12 @@ class Board():
 
                 if(row and col and self.board[row-1][col-1] is None):
                     self.draw_XO(row, col)
+
+    def ai_click(self):
+        if self.win == False:
+            x, y = ai_move(self.board, "easy")
+            print(x, y)
+            self.draw_XO(x+1, y+1)
 
     def draw_XO(self, row, col):
         if row == 1:
@@ -292,11 +303,12 @@ def pvp():
 def pve():
     running = True
     screen.fill(white)
-    home_btn.draw(screen)
-    reset_btn.draw(screen)
     board = Board()
     board.draw_board()
     while running:
+        home_btn.draw(screen)
+        reset_btn.draw(screen)
+        pg.display.update()
         for event in pg.event.get():
             pos = pg.mouse.get_pos()
             if event.type == QUIT:
@@ -308,12 +320,22 @@ def pve():
             if event.type == pg.MOUSEBUTTONDOWN:
                 if home_btn.isOver(pos):
                     main_menu()
+                elif reset_btn.isOver(pos):
+                    board.reset("pve")
+                else:
+                    if board.xo == "x":
+                        board.user_click()
             if event.type == pg.MOUSEMOTION:
                 if home_btn.isOver(pos):
                     home_btn.color = (52, 198, 235)
                 else:
                     home_btn.color = (52, 183, 235)
-        pg.display.update()
+                if reset_btn.isOver(pos):
+                    reset_btn.color = (52, 198, 235)
+                else:
+                    reset_btn.color = (52, 183, 235)
+        if board.xo == "o":
+            board.ai_click()
         mainClock.tick(60)
 
 
